@@ -140,6 +140,7 @@ function lanzarDado() {
     setTimeout(() => {
         isSpinningFast = false;
         document.getElementById('resultado-display').innerText = valorDisplay;
+        actualizarTabla();
     }, 600);
 }
 
@@ -231,6 +232,7 @@ function lanzarMultiple() {
             setTimeout(() => {
                 isSpinningFast = false;
                 document.getElementById('resultado-display').innerText = resKey;
+                actualizarTabla();
             }, 600);
         }
     }

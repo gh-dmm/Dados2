@@ -152,24 +152,57 @@ function actualizarTabla() {
         ? "Estadísticas: Combinaciones de 2 Dados" 
         : "Estadísticas: Lanzamiento de 1 Dado";
 
-    let acumulada = 0;
+    // Cambiamos el acumulador para que sume las frecuencias absolutas 
+    // y luego lo mostremos como fracción sobre el total.
+    let acumuladaAbsoluta = 0;
 
-    // Iterar sobre las llaves de frecuencias (ya sea 1-6 o las 36 combinaciones)
     Object.keys(frecuencias).forEach(key => {
         const f = frecuencias[key];
         const h = total > 0 ? `${f}/${total}` : "0"; 
-        acumulada += f; 
+        
+        acumuladaAbsoluta += f; 
+        // Generamos la frecuencia relativa acumulada en formato fracción (H)
+        const H = total > 0 ? `${acumuladaAbsoluta}/${total}` : "0";
 
         const fila = `<tr>
             <td><strong>${key}</strong></td>
             <td>${f}</td>
             <td>${h}</td>
-            <td>${acumulada}</td>
+            <td>${H}</td>
         </tr>`;
         cuerpo.innerHTML += fila;
     });
 
     document.getElementById('total-lanzamientos').innerText = `Total de lanzamientos: ${total}`;
+}
+
+function exportarExcel() {
+    const datosExcel = [];
+    let acumuladaAbsoluta = 0;
+    const total = lanzamientos.length;
+
+    Object.keys(frecuencias).forEach(key => {
+        const f = frecuencias[key];
+        const h = total > 0 ? `${f}/${total}` : "0";
+        
+        acumuladaAbsoluta += f;
+        const H = total > 0 ? `${acumuladaAbsoluta}/${total}` : "0";
+
+        datosExcel.push({
+            "Resultado (x)": key,
+            "Frecuencia (f)": f,
+            "Frecuencia Relativa (h)": h,
+            "Frec. Acumulada (H)": H
+        });
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(datosExcel);
+    const workbook = XLSX.utils.book_new();
+    const nombreHoja = dosDadosActivos ? "Combinaciones 2 Dados" : "1 Dado";
+    const nombreArchivo = dosDadosActivos ? "Estadisticas_Combinaciones.xlsx" : "Estadisticas_1_Dado.xlsx";
+    
+    XLSX.utils.book_append_sheet(workbook, worksheet, nombreHoja);
+    XLSX.writeFile(workbook, nombreArchivo);
 }
 // Función para ejecutar lanzamientos consecutivos
 function lanzarMultiple() {
@@ -200,32 +233,6 @@ function lanzarMultiple() {
             }, 600);
         }
     }
-}
-function exportarExcel() {
-    const datosExcel = [];
-    let acumulada = 0;
-    const total = lanzamientos.length;
-
-    Object.keys(frecuencias).forEach(key => {
-        const f = frecuencias[key];
-        const h = total > 0 ? `${f}/${total}` : "0";
-        acumulada += f;
-
-        datosExcel.push({
-            "Resultado (x)": key,
-            "Frecuencia (f)": f,
-            "Frecuencia Relativa (h)": h,
-            "Frecuencia Acumulada (F)": acumulada
-        });
-    });
-
-    const worksheet = XLSX.utils.json_to_sheet(datosExcel);
-    const workbook = XLSX.utils.book_new();
-    const nombreHoja = dosDadosActivos ? "Combinaciones 2 Dados" : "1 Dado";
-    const nombreArchivo = dosDadosActivos ? "Estadisticas_Combinaciones.xlsx" : "Estadisticas_1_Dado.xlsx";
-    
-    XLSX.utils.book_append_sheet(workbook, worksheet, nombreHoja);
-    XLSX.writeFile(workbook, nombreArchivo);
 }
 
 window.addEventListener('resize', () => {

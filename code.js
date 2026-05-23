@@ -56,7 +56,7 @@ function init() {
     toggleSwitch.addEventListener('change', evaluarCambioModo);
 
     animate();
-}
+}2
 
 function evaluarCambioModo() {
     const toggleSwitch = document.getElementById('dice-toggle');

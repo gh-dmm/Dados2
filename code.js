@@ -116,6 +116,7 @@ function animate() {
 // --- LÓGICA DE DATOS ---
 
 function lanzarDado() {
+    configurarModoEstructural();
     document.getElementById('resultado-display').innerText = "🎲";
     isSpinningFast = true;
 
@@ -210,7 +211,7 @@ function lanzarMultiple() {
     // Validamos el rango entre 1 y 150
     let cantidad = Math.min(Math.max(parseInt(input.value) || 1, 1), 150);
     input.value = cantidad; // Refleja la corrección en el textbox si el usuario puso más de 150
-    
+    configurarModoEstructural();
     isSpinningFast = true;
 
     for (let i = 0; i < cantidad; i++) {

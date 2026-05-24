@@ -11,15 +11,7 @@
 	<!-- Incluir Chart.js desde CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Contenedor de las gráficas (colócalo debajo de tu tabla) -->
-<div id="graficas-container" style="max-width: 800px; margin: 20px auto; padding: 10px;">
-    <div style="margin-bottom: 40px;">
-        <canvas id="graficoFrecuencias"></canvas>
-    </div>
-    <div>
-        <canvas id="graficoAcumulada"></canvas>
-    </div>
-</div>
+
 </head>
 <body>
 
@@ -91,6 +83,15 @@
                         </table>
                     </div>
                     <p id="total-lanzamientos" class="text-info mt-2">Total de lanzamientos: 0</p>
+					<!-- Contenedor de las gráficas (colócalo debajo de tu tabla) -->
+<div id="graficas-container" style="max-width: 800px; margin: 20px auto; padding: 10px;">
+    <div style="margin-bottom: 40px;">
+        <canvas id="graficoFrecuencias"></canvas>
+    </div>
+    <div>
+        <canvas id="graficoAcumulada"></canvas>
+    </div>
+</div>
                     <div class="modal-footer border-info px-0 pb-0">
                         <button type="button" class="btn btn-success" onclick="exportarExcel()">
                             <i class="bi bi-file-earmark-excel"></i> Exportar a Excel

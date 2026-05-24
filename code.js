@@ -4,6 +4,163 @@ let frecuencias = {};  // Mapeo dinámico de frecuencias
 let scene, camera, renderer, cube1, cube2;
 let isSpinningFast = false;
 let dosDadosActivos = false;
+// Añade esta variable global al principio de tu archivo junto a las demás
+let chartFrecuencias = null;
+let chartAcumulada = null;
+
+function actualizarTabla() {
+    const total = lanzamientos.length;
+    const cuerpo = document.getElementById('tabla-cuerpo');
+    const tituloModal = document.getElementById('modal-titulo-dinamico');
+    cuerpo.innerHTML = "";
+    
+    tituloModal.innerText = dosDadosActivos 
+        ? "Estadísticas: Combinaciones de 2 Dados" 
+        : "Estadísticas: Lanzamiento de 1 Dado";
+
+    let acumuladaAbsoluta = 0;
+
+    // Arreglos para alimentar las gráficas
+    const labels = [];
+    const datosAbsolutos = [];
+    const datosRelativos = [];
+    const datosAcumulados = [];
+
+    Object.keys(frecuencias).forEach(key => {
+        const f = frecuencias[key];
+        const h_valor = total > 0 ? (f / total) : 0; // Valor numérico para la gráfica
+        const h = total > 0 ? `${f}/${total}` : "0"; // Texto para la tabla
+        
+        acumuladaAbsoluta += f; 
+        const H_valor = total > 0 ? (acumuladaAbsoluta / total) : 0; // Valor numérico para la gráfica
+        const H = total > 0 ? `${acumuladaAbsoluta}/${total}` : "0"; // Texto para la tabla
+
+        // Insertar fila en la tabla
+        const fila = `<tr>
+            <td><strong>${key}</strong></td>
+            <td>${f}</td>
+            <td>${h}</td>
+            <td>${H}</td>
+        </tr>`;
+        cuerpo.innerHTML += fila;
+
+        // Guardar datos para las gráficas
+        labels.push(key);
+        datosAbsolutos.push(f);
+        datosRelativos.push(h_valor * 100); // Se guarda como porcentaje para facilitar la lectura
+        datosAcumulados.push(H_valor * 100);
+    });
+
+    document.getElementById('total-lanzamientos').innerText = `Total de lanzamientos: ${total}`;
+
+    // --- RENDERIZADO DE LAS GRÁFICAS ---
+    renderizarGraficas(labels, datosAbsolutos, datosRelativos, datosAcumulados);
+}
+
+function renderizarGraficas(labels, absolutos, relativos, acumulados) {
+    // Destruir gráficos anteriores si existen para evitar duplicados al sobreescribir
+    if (chartFrecuencias) chartFrecuencias.destroy();
+    if (chartAcumulada) chartAcumulada.destroy();
+
+    const ctxFrec = document.getElementById('graficoFrecuencias').getContext('2d');
+    const ctxAcum = document.getElementById('graficoAcumulada').getContext('2d');
+
+    // Estilos compartidos oscuros para hacer match con tu fondo 0x121212
+    const gridColor = 'rgba(255, 255, 255, 0.1)';
+    const textColor = '#e0e0e0';
+
+    // 1. Gráfico de Frecuencias Absolutas y Relativas
+    chartFrecuencias = new Chart(ctxFrec, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Frecuencia Absoluta (f)',
+                    data: absolutos,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'yAbs',
+                },
+                {
+                    label: 'Frecuencia Relativa (%)',
+                    data: relativos,
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'yRel',
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { labels: { color: textColor } },
+                title: { display: true, text: 'Distribución de Frecuencias', color: textColor, font: { size: 16 } }
+            },
+            scales: {
+                x: { grid: { color: gridColor }, ticks: { color: textColor } },
+                yAbs: {
+                    type: 'linear',
+                    position: 'left',
+                    title: { display: true, text: 'Cantidad de veces', color: textColor },
+                    grid: { color: gridColor },
+                    ticks: { color: textColor, stepSize: 1 }
+                },
+                yRel: {
+                    type: 'linear',
+                    position: 'right',
+                    title: { display: true, text: 'Porcentaje (%)', color: textColor },
+                    grid: { drawOnChartArea: false }, // No duplicar líneas de cuadrícula
+                    ticks: { 
+                        color: textColor,
+                        callback: value => value + '%'
+                    },
+                    min: 0,
+                    max: 100
+                }
+            }
+        }
+    });
+
+    // 2. Gráfico de Frecuencia Acumulada (Ojiva)
+    chartAcumulada = new Chart(ctxAcum, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Frecuencia Acumulada (H) %',
+                data: acumulados,
+                borderColor: 'rgba(255, 99, 132, 1)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                fill: true,
+                tension: 0.1,
+                borderWidth: 2,
+                pointBackgroundColor: 'rgba(255, 99, 132, 1)'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { labels: { color: textColor } },
+                title: { display: true, text: 'Frecuencia Relativa Acumulada', color: textColor, font: { size: 16 } }
+            },
+            scales: {
+                x: { grid: { color: gridColor }, ticks: { color: textColor } },
+                y: {
+                    grid: { color: gridColor },
+                    ticks: { 
+                        color: textColor,
+                        callback: value => value + '%'
+                    },
+                    min: 0,
+                    max: 100
+                }
+            }
+        }
+    });
+}
 
 // --- MOTOR 3D ---
 function crearTexturaDado(numero) {
@@ -144,39 +301,6 @@ function lanzarDado() {
     }, 600);
 }
 
-function actualizarTabla() {
-    const total = lanzamientos.length;
-    const cuerpo = document.getElementById('tabla-cuerpo');
-    const tituloModal = document.getElementById('modal-titulo-dinamico');
-    cuerpo.innerHTML = "";
-    
-    tituloModal.innerText = dosDadosActivos 
-        ? "Estadísticas: Combinaciones de 2 Dados" 
-        : "Estadísticas: Lanzamiento de 1 Dado";
-
-    // Cambiamos el acumulador para que sume las frecuencias absolutas 
-    // y luego lo mostremos como fracción sobre el total.
-    let acumuladaAbsoluta = 0;
-
-    Object.keys(frecuencias).forEach(key => {
-        const f = frecuencias[key];
-        const h = total > 0 ? `${f}/${total}` : "0"; 
-        
-        acumuladaAbsoluta += f; 
-        // Generamos la frecuencia relativa acumulada en formato fracción (H)
-        const H = total > 0 ? `${acumuladaAbsoluta}/${total}` : "0";
-
-        const fila = `<tr>
-            <td><strong>${key}</strong></td>
-            <td>${f}</td>
-            <td>${h}</td>
-            <td>${H}</td>
-        </tr>`;
-        cuerpo.innerHTML += fila;
-    });
-
-    document.getElementById('total-lanzamientos').innerText = `Total de lanzamientos: ${total}`;
-}
 
 function exportarExcel() {
     const datosExcel = [];
